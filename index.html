@@ -1,1 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Rock, Paper, Scissors</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #22c55e;
+            --danger: #ef4444;
+        }
 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+
+        /* Mode Selector Tabs */
+        .mode-selector {
+            display: flex;
+            background: #0f172a;
+            padding: 5px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            background: transparent;
+            color: var(--text-muted);
+            padding: 10px;
+            font-size: 0.9.rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin-top: 0;
+        }
+
+        .mode-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            margin-top: 5px;
+            border: 2px solid #334155;
+            border-radius: 8px;
+            background: #0f172a;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary);
+        }
+
+        button.action-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button.action-btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Game UI */
+        .scoreboard {
+            display: flex;
+            justify-content: space-between;
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+
+        .score-box { flex: 1; }
+        .score-num { font-size: 1.8rem; font-weight: bold; color: var(--primary); }
+
+        .turn-indicator {
+            background: #334155;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        .choices {
+            display: flex;
+            justify-content: space-around;
+            margin: 25px 0;
+        }
+
+        .choice-btn {
+            background: #334155;
+            font-size: 2.5rem;
+            padding: 15px;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .choice-btn:hover {
+            background: var(--primary);
+            transform: translateY(-5px);
+        }
+
+        .results-view {
+            margin-top: 20px;
+            padding: 15px;
+            background: #0f172a;
+            border-radius: 10px;
+            min-height: 100px;
+        }
+
+        .result-text { font-size: 1.4rem; font-weight: bold; margin-bottom: 10px; }
+        .win { color: var(--success); }
+        .draw { color: var(--text-muted); }
+
+        .battle-display {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            font-size: 1.1rem;
+        }
+
+        .error-msg {
+            color: var(--danger);
+            font-size: 0.9rem;
+            margin-top: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Setup Screen -->
+        <div id="setup-screen">
+            <h1>Game Setup</h1>
+            
+            <div class="mode-selector">
+                <button type="button" class="mode-btn active" id="mode-cpu-btn" onclick="setMode('cpu')">vs Computer</button>
+                <button type="button" class="mode-btn" id="mode-friend-btn" onclick="setMode('friend')">vs Friend</button>
+            </div>
+            
+            <div class="input-group">
+                <label for="p1-input" id="p1-label-setup">Player 1 Name</label>
+                <input type="text" id="p1-input" placeholder="Enter Name" maxlength="12" autocomplete="off">
+            </div>
+
+            <div class="input-group id-p2-group hidden" id="p2-group">
+                <label for="p2-input">Player 2 Name</label>
+                <input type="text" id="p2-input" placeholder="Enter Player 2 Name" maxlength="12" autocomplete="off">
+            </div>
+            
+            <div id="error-alert" class="error-msg">⚠️ Name inputs cannot be empty!</div>
+
+            <button id="start-btn" class="action-btn">Open Game</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="hidden">
+            <h1 id="game-title">Arena</h1>
+            
+            <div class="scoreboard">
+                <div class="score-box">
+                    <div id="p1-label">Player 1</div>
+                    <div class="score-num" id="p1-score">0</div>
+                </div>
+                <div style="align-self: center; color: var(--text-muted); font-weight: bold;">VS</div>
+                <div class="score-box">
+                    <div id="p2-label">Computer</div>
+                    <div class="score-num" id="p2-score">0</div>
+                </div>
+            </div>
+
+            <div class="turn-indicator" id="turn-banner">
+                <span id="current-player-name">Player 1</span>'s Turn!
+            </div>
+
+            <div class="choices">
+                <div class="choice-btn" onclick="handleSelection('✊')">✊</div>
+                <div class="choice-btn" onclick="handleSelection('✋')">✋</div>
+                <div class="choice-btn" onclick="handleSelection('✌️')">✌️</div>
+            </div>
+
+            <div class="results-view">
+                <div id="result-status" class="result-text" style="color: var(--text-muted)">Waiting for moves...</div>
+                <div class="battle-display">
+                    <div id="p1-pick"></div>
+                    <div id="p2-pick"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const setupScreen = document.getElementById('setup-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const p1Input = document.getElementById('p1-input');
+        const p2Input = document.getElementById('p2-input');
+        const p2Group = document.getElementById('p2-group');
+        const startBtn = document.getElementById('start-btn');
+        const errorAlert = document.getElementById('error-alert');
+        const modeCpuBtn = document.getElementById('mode-cpu-btn');
+        const modeFriendBtn = document.getElementById('mode-friend-btn');
+        const p1SetupLabel = document.getElementById('p1-label-setup');
+
+        const p1Label = document.getElementById('p1-label');
+        const p2Label = document.getElementById('p2-label');
+        const p1ScoreEl = document.getElementById('p1-score');
+        const p2ScoreEl = document.getElementById('p2-score');
+        
+        const turnBanner = document.getElementById('turn-banner');
+        const currentPlayerNameEl = document.getElementById('current-player-name');
+        const resultStatus = document.getElementById('result-status');
+        const p1PickEl = document.getElementById('p1-pick');
+        const p2PickEl = document.getElementById('p2-pick');
+
+        // Game Configuration States
+        let gameMode = "cpu"; // "cpu" or "friend"
+        let p1Name = "";
+        let p2Name = "Computer";
+        let p1Score = 0;
+        let p2Score = 0;
+        
+        let p1Choice = null;
+        let currentTurn = 1; 
+
+        const weaponChoices = ['✊', '✋', '✌️'];
+
+        // Dynamic Setup Configuration Based on Tabs
+        function setMode(mode) {
+            gameMode = mode;
+            errorAlert.style.display = "none";
+            
+            if (mode === 'cpu') {
+                modeCpuBtn.classList.add('active');
+                modeFriendBtn.classList.remove('active');
+                p2Group.classList.add('hidden');
+                p1SetupLabel.textContent = "Your Name";
+                p2Name = "Computer";
+            } else {
+                modeCpuBtn.classList.remove('active');
+                modeFriendBtn.classList.add('active');
+                p2Group.classList.remove('hidden');
+                p1SetupLabel.textContent = "Player 1 Name";
+            }
+        }
+
+        // Open Game Screen with Strict Validation 
+        startBtn.addEventListener('click', () => {
+            const name1 = p1Input.value.trim();
+            const name2 = p2Input.value.trim();
+
+            // Check conditions depending on mode selected
+            if (name1 === "") {
+                errorAlert.style.display = "block";
+                return;
+            }
+            if (gameMode === "friend" && name2 === "") {
+                errorAlert.style.display = "block";
+                return;
+            }
+
+            // Names checked out - assign variables
+            p1Name = name1;
+            if (gameMode === "friend") p2Name = name2;
+            
+            // Sync Text to Dynamic Arena Labels
+            p1Label.textContent = p1Name;
+            p2Label.textContent = p2Name;
+            
+            if (gameMode === "cpu") {
+                turnBanner.classList.add('hidden'); // No need for individual turn announcements vs a bot
+            } else {
+                turnBanner.classList.remove('hidden');
+                currentPlayerNameEl.textContent = p1Name;
+            }
+
+            // Interface swap animation
+            errorAlert.style.display = "none";
+            setupScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+        });
+
+        // Unified Turn/Move Handler
+        function handleSelection(choice) {
+            if (gameMode === "cpu") {
+                // Instantly generate computer move and decide winner
+                p1Choice = choice;
+                const randomIdx = Math.floor(Math.random() * 3);
+                const cpuChoice = weaponChoices[randomIdx];
+                evaluateRound(p1Choice, cpuChoice);
+            } else {
+                // 2-Player Passing State Mechanism
+                if (currentTurn === 1) {
+                    p1Choice = choice;
+                    // Wipe elements cleanly so the friend can't look back
+                    p1PickEl.textContent = "";
+                    p2PickEl.textContent = "";
+                    resultStatus.textContent = "Choice hidden! Pass the device...";
+                    resultStatus.className = "result-text draw";
+                    
+                    currentTurn = 2;
+                    currentPlayerNameEl.textContent = p2Name;
+                } else if (currentTurn === 2) {
+                    evaluateRound(p1Choice, choice);
+                    
+                    // Reset Turn back to first player
+                    currentTurn = 1;
+                    currentPlayerNameEl.textContent = p1Name;
+                }
+            }
+        }
+
+        // Processing winner outcome and tracking score increments
+        function evaluateRound(choice1, choice2) {
+            let winStatusMessage = "";
+            let outcomeStyleClass = "result-text";
+
+            if (choice1 === choice2) {
+                winStatusMessage = "It's a Tie! 🤝";
+                outcomeStyleClass += " draw";
+            } else if (
+                (choice1 === '✊' && choice2 === '✌️') ||
+                (choice1 === '✋' && choice2 === '✊') ||
+                (choice1 === '✌️' && choice2 === '✋')
+            ) {
+                winStatusMessage = `🎉 ${p1Name} Wins!`;
+                outcomeStyleClass += " win";
+                p1Score++;
+            } else {
+                winStatusMessage = `🎉 ${p2Name} Wins!`;
+                outcomeStyleClass += " win";
+                p2Score++;
+            }
+
+            // Sync visual data
+            p1ScoreEl.textContent = p1Score;
+            p2ScoreEl.textContent = p2Score;
+            resultStatus.textContent = winStatusMessage;
+            resultStatus.className = outcomeStyleClass;
+
+            p1PickEl.innerHTML = `${p1Name}: <strong>${choice1}</strong>`;
+            p2PickEl.innerHTML = `${p2Name}: <strong>${choice2}</strong>`;
+            
+            p1Choice = null; // Flush round memories clean
+        }
+    </script>
+</body>
+</html>
